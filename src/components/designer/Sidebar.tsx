@@ -1,9 +1,10 @@
 
 import { ShoppingBag, LogOut, LayoutDashboard, Boxes } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/components/ui/use-toast";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -12,6 +13,7 @@ interface SidebarProps {
 
 const Sidebar = ({ collapsed, toggleSidebar }: SidebarProps) => {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const { logout, designer } = useAuth();
   
   const navigation = [
@@ -80,7 +82,23 @@ const Sidebar = ({ collapsed, toggleSidebar }: SidebarProps) => {
           variant="outline"
           size="sm"
           className={cn("justify-start", collapsed && "justify-center")}
-          onClick={logout}
+          onClick={async () => {
+            try {
+              await logout();
+              toast({
+                title: "Logged out",
+                description: "You have been successfully logged out.",
+              });
+              navigate("/");
+            } catch (error: any) {
+              console.error("Logout error:", error);
+              toast({
+                title: "Error",
+                description: "Failed to log out. Please try again.",
+                variant: "destructive",
+              });
+            }
+          }}
         >
           <LogOut className="h-4 w-4" />
           {!collapsed && <span className="ml-2">Sign Out</span>}

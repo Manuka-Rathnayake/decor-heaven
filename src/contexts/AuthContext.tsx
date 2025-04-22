@@ -1,39 +1,131 @@
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { auth, app } from '../config/firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, User, updateProfile } from 'firebase/auth';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
+
 import { Designer } from '../types';
 
 interface AuthContextType {
   designer: Designer | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<boolean>;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock designer for demonstration
-const mockDesigner: Designer = {
-  id: '1',
-  name: 'Alex Designer',
-  email: 'designer@example.com',
-  role: 'senior',
-  avatar: 'https://i.pravatar.cc/150?img=11'
-};
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [designer, setDesigner] = useState<Designer | null>(null);
+  const db = getFirestore(app);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    // Mock authentication logic
-    if (email === 'designer@example.com' && password === 'password') {
-      setDesigner(mockDesigner);
+  const [designer, setDesigner] = useState<Designer | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [user, setUser] = useState<User | null>(null);
+
+  // Listen for auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Update designer info when user changes
+  useEffect(() => {
+    const fetchDesignerData = async () => {
+      if (user) {
+        // Convert Firebase user to Designer
+        setDesigner({
+          id: user.uid,
+          name: user.displayName || 'Designer',
+          email: user.email || '',
+          role: 'designer', // Default role
+          avatar: user.photoURL || 'https://i.pravatar.cc/150?img=11'
+        });
+      } else {
+        setDesigner(null);
+      }
+    };
+
+    fetchDesignerData();
+  }, [user]);
+
+  const register = async (name: string, email: string, password: string): Promise<boolean> => {
+    try {
+      setLoading(true);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, {
+        displayName: name,
+      });
+      
+      // Update Firestore with additional user data
+      if (userCredential.user) {
+        await setDoc(doc(db, "designers", userCredential.user.uid), {
+          name,
+          email,
+          role: 'designer',
+          uid: userCredential.user.uid,
+          createdAt: new Date().toISOString(),
+        });
+      }
+
       return true;
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      // Handle specific Firebase errors if needed (e.g., email already in use)
+
+      // Re-throw the error to be handled by the component
+      throw error;
+    } finally {
+      setLoading(false);
     }
-    return false;
   };
 
-  const logout = () => {
-    setDesigner(null);
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      setLoading(true);
+      await signInWithEmailAndPassword(auth, email, password);
+
+      return true;
+    } catch (error: any) {
+      console.error('Login error:', error);
+      // Handle specific Firebase errors (e.g., invalid credentials)
+
+      switch (error.code) {
+        case 'auth/invalid-credential':
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+          throw new Error('Invalid email or password.');
+        case 'auth/too-many-requests':
+          throw new Error('Too many unsuccessful login attempts. Please try again later.');
+        case 'auth/network-request-failed':
+          throw new Error('Network error. Please check your internet connection.');
+        default:
+          throw new Error('An error occurred during login.');
+      }
+
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = async (): Promise<void> => {
+    try {
+      setLoading(true);
+
+      try {
+        await signOut(auth);
+        setDesigner(null);
+      } catch (e) {
+        console.error('Failed to sign out locally:', e);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const isAuthenticated = designer !== null;
@@ -44,7 +136,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         designer,
         isAuthenticated,
         login,
-        logout
+        logout,
+        register,
+        loading
       }}
     >
       {children}
@@ -59,3 +153,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+

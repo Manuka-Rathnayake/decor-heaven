@@ -116,9 +116,14 @@ const ProductForm = ({
     const productData = {
       ...initialValues,
       ...values,
-      // Convert values to appropriate types
+      // Convert values to appropriate types and ensure dimensions has required properties
       price: Number(values.price),
-      stock: Number(values.stock)
+      stock: Number(values.stock),
+      dimensions: {
+        width: Number(values.dimensions.width),
+        height: Number(values.dimensions.height),
+        depth: Number(values.dimensions.depth)
+      }
     };
     
     onSave(productData);
