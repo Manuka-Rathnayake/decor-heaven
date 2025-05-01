@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { collection, getDocs, getFirestore, doc, deleteDoc } from "firebase/firestore";
 import { Edit, Trash2, Plus, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription } from "@/components/ui/card";
 import ProductSearch from "./ProductSearch";
 import { Product } from "@/types";
 import {
@@ -14,6 +14,12 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+  DialogTrigger,
+
+
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -27,6 +33,8 @@ const ProductManagement = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showDialog, setShowDialog] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const db = getFirestore(app);
 
     const navigate = useNavigate();
@@ -55,13 +63,38 @@ const ProductManagement = () => {
     setSearchTerm(term);
   };
 
-  const handleDelete = (id: string) => {
-    setProducts(products.filter(product => product.id !== id));
-    toast({
-      title: "Product Deleted",
-      description: "Product has been removed successfully."
-    });
+  const handleDeleteConfirmation = (id: string) => {
+    setProductToDelete(id);
+  }
+
+  const handleDelete = async (id: string) => {
+    setIsDeleting(true);
+    try {
+      const productRef = doc(db, "products", id);
+      await deleteDoc(productRef);
+
+      // Update UI after successful deletion
+      setProducts(products.filter(product => product.id !== id));
+
+      toast({
+        title: "Product Deleted",
+        description: "Product has been removed successfully."
+      });
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      toast({
+        variant: "destructive",
+        title: "Error Deleting Product",
+        description: "There was an error deleting the product. Please try again.",
+      });
+    } finally {
+      setIsDeleting(false);
+      setProductToDelete(null); // Close the dialog
+    }
   };
+
+  
+
 
   return (
     <div className="w-full">
@@ -174,13 +207,28 @@ const ProductManagement = () => {
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleDelete(product.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <Dialog open={productToDelete === product.id} onOpenChange={(open) => !open && setProductToDelete(null)}>
+                     <DialogTrigger asChild>
+                      <Button size="sm" variant="destructive" onClick={() => handleDeleteConfirmation(product.id)}>
+                       <Trash2 className="h-4 w-4" />
+                      </Button>
+                     </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Are you sure?</DialogTitle>
+                        <DialogDescription>This action cannot be undone.</DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter className="sm:justify-end">
+                        <Button type="button" variant="secondary" onClick={() => setProductToDelete(null)}>Cancel</Button>
+                        <Button type="button" variant="destructive" onClick={() => handleDelete(product.id)} disabled={isDeleting}>
+                          Delete
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                   </div>
                 </div>
-              </CardContent>
-            </div>
+              </CardContent>            </div>
           </Card>
         ))}
       </div>
@@ -309,7 +357,7 @@ const ProductManagement = () => {
                           <Edit className="mr-2 h-4 w-4" />
                           Edit Product
                         </Button>
-                      </div>
+                      </div>                    <Dialog open={productToDelete === product.id} onOpenChange={(open) => !open && setProductToDelete(null)}>                    <DialogContent>                    <DialogHeader>                    <DialogTitle>Are you sure?</DialogTitle>                        <DialogDescription>This action cannot be undone.</DialogDescription>                    </DialogHeader>                        <DialogFooter className="sm:justify-end">                         <Button type="button" variant="secondary" onClick={() => setProductToDelete(null)} >Cancel</Button>                         <Button type="button" variant="destructive" onClick={() => handleDelete(product.id)} disabled={isDeleting}>                            Delete                         </Button>                       </DialogFooter>                     </DialogContent>                    </Dialog>
                     </div>
                   </div>
                 </>
