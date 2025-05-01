@@ -33,9 +33,9 @@ import { productSchema, ProductFormValues } from "@/schemas/product-schema";
 import { Badge } from "@/components/ui/badge";
 
 interface ProductFormProps {
-  onSave: (product: Partial<Product> ) => Promise<void> ;
+  onSave: (product: Partial<Product> & { id?: string }) => Promise<void>;
   onCancel: () => void;
-  initialValues?: Partial<Product>;
+  initialValues?: Product;
   isEditing?: boolean;
 }
 
@@ -44,23 +44,27 @@ const ProductForm = ({
   onCancel,
   initialValues = {},
   isEditing = false,
-}: ProductFormProps) => {
+}: ProductFormProps) => {  
   const { toast } = useToast();
   const [imagePreview, setImagePreview] = useState<string | null>(initialValues.image || null);
   
   // States for color and material selection
-  const [selectedColor, setSelectedColor] = useState<string>("");
-  const [selectedMaterial, setSelectedMaterial] = useState<string>("");
-  
-  // Initialize form with default values
+  const [selectedColor, setSelectedColor] = useState<string>("");  
+  const [selectedMaterial, setSelectedMaterial] = useState<string>("");  
+
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
-      name: initialValues.name || "",
-      description: initialValues.description || "",
-      price: initialValues.price || 0,
-      stock: initialValues.stock || 0,
-      category: initialValues.category || "",
+      name: initialValues?.name || "",
+      description: initialValues?.description || "",
+      price: initialValues?.price || 0,
+      stock: initialValues?.stock || 0,
+      category: initialValues?.category || "",
+
+      image: initialValues?.image || "",
+      colors: initialValues?.colors || [],
+      materials: initialValues?.materials || [],
+
       image: initialValues.image || "",
       colors: initialValues.colors || [],
       materials: initialValues.materials || [],
@@ -70,6 +74,7 @@ const ProductForm = ({
         depth: initialValues.dimensions?.depth || 0
       }
     }
+
   });
   
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,8 +118,10 @@ const ProductForm = ({
   
   const handleFormSubmit = async (values: ProductFormValues) => {
     // Combine form values with any existing data from initialValues
-    const productData = {
-      ...initialValues,
+    const productData: Partial<Product> & { id?: string } = {
+      ...(initialValues || {}),
+      id: initialValues?.id,
+
       ...values,
       // Convert values to appropriate types and ensure dimensions has required properties
       price: Number(values.price),
@@ -125,8 +132,9 @@ const ProductForm = ({
         depth: Number(values.dimensions.depth)
       }
     };
-    await 
-    onSave(productData);
+
+    await onSave(productData);
+
     toast({
       title: isEditing ? "Product Updated" : "Product Added",
       description: isEditing 
