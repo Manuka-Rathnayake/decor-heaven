@@ -12,6 +12,7 @@ export interface Product {
   discount?: number;
   colors?: string[];
   materials?: string[];
+  modelUrl?: string;
   modelFile?: string;
   dimensions?: {
     width: number;

@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
-import { doc, getDoc, getFirestore, updateDoc } from "firebase/firestore";
+import { doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import Sidebar from "@/components/designer/Sidebar";
 import { cn } from "@/lib/utils";
@@ -8,7 +9,7 @@ import DesignerHeader from "@/components/designer/DesignerHeader";
 import ProductForm from "@/components/designer/ProductForm";
 import { useNavigate, useParams } from "react-router-dom";
 import { Product } from "@/types";
-import { products } from "@/data/products";
+
 import { useToast } from "@/hooks/use-toast"; import { app } from "@/config/firebase";
 
 const EditProduct = () => {
@@ -20,6 +21,7 @@ const EditProduct = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const db = getFirestore(app);
+  const storage = getStorage(app);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -38,6 +40,9 @@ const EditProduct = () => {
           navigate("/designer/products");
         }
       } catch (error) {
+         toast({
+          description: "Failed to fetch product.",
+        });
         console.error("Error fetching product:", error);
       } finally {
         setIsLoading(false);
@@ -51,10 +56,34 @@ const EditProduct = () => {
     setCollapsed(!collapsed);
   };
 
-  const handleSaveProduct = async (productData: Partial<Product>) => {
-    await updateDoc(doc(db, "products", id!), productData);
-    toast({ title: "Product Updated", description: "Your product has been successfully updated." });
-    navigate("/designer/products");
+    const handleSaveProduct = async (productData: Partial<Product>) => {
+        const { id: _, ...productDataWithoutId } = productData;
+
+        // Handle model file upload if it exists
+        let modelUrl = "";
+        try {
+            if (productData.modelFile) {
+                const modelFile = productData.modelFile as unknown as File[];
+                if (modelFile.length > 0) {
+                    const file = modelFile[0];
+                    const storageRef = ref(storage, `models/products/${Date.now()}-${file.name}`);
+                    const snapshot = await uploadBytes(storageRef, file);
+                    modelUrl = await getDownloadURL(snapshot.ref);
+                }
+            }
+        } catch (error) {
+            console.error('Error uploading model file:', error);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Failed to upload model file. Please try again.',
+            });
+        }
+        try {
+            await setDoc(doc(db, "products", id!), { ...productDataWithoutId, modelUrl });
+            toast({ title: "Product Updated", description: "Your product has been successfully updated." });
+            navigate("/designer/products");
+        } catch (error) { console.error("Error saving product:", error); }
   };
 
   return (

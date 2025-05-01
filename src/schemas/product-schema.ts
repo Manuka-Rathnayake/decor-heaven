@@ -10,7 +10,7 @@ export const productSchema = z.object({
   image: z.string().min(1, "Please upload a product image"),
   colors: z.array(z.string()).optional(),
   materials: z.array(z.string()).optional(),
-  modelFile: z.string().optional(),
+  modelFile: z.any().optional(),
   dimensions: z.object({
     width: z.number().min(0, "Width cannot be negative"),
     height: z.number().min(0, "Height cannot be negative"),
