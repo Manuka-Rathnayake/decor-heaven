@@ -33,7 +33,7 @@ import { productSchema, ProductFormValues } from "@/schemas/product-schema";
 import { Badge } from "@/components/ui/badge";
 
 interface ProductFormProps {
-  onSave: (product: Partial<Product>) => void;
+  onSave: (product: Partial<Product> ) => Promise<void> ;
   onCancel: () => void;
   initialValues?: Partial<Product>;
   isEditing?: boolean;
@@ -111,7 +111,7 @@ const ProductForm = ({
     form.setValue("materials", currentMaterials.filter(m => m !== material));
   };
   
-  const handleFormSubmit = (values: ProductFormValues) => {
+  const handleFormSubmit = async (values: ProductFormValues) => {
     // Combine form values with any existing data from initialValues
     const productData = {
       ...initialValues,
@@ -125,7 +125,7 @@ const ProductForm = ({
         depth: Number(values.dimensions.depth)
       }
     };
-    
+    await 
     onSave(productData);
     toast({
       title: isEditing ? "Product Updated" : "Product Added",

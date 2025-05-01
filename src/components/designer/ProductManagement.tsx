@@ -1,11 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { collection, getDocs, getFirestore, doc, deleteDoc } from "firebase/firestore";
 import { Edit, Trash2, Plus, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import ProductSearch from "./ProductSearch";
 import { Product } from "@/types";
-import { products as initialProducts } from "@/data/products";
 import {
   HoverCard,
   HoverCardContent,
@@ -20,13 +20,30 @@ import {
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
+import { app } from "@/config/firebase";
 
 const ProductManagement = () => {
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showDialog, setShowDialog] = useState<string | null>(null);
+  const db = getFirestore(app);
+
+    const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const productsCol = collection(db, 'products');
+        const productSnapshot = await getDocs(productsCol);
+        setProducts(productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[]);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   // Filter products based on search term
   const filteredProducts = products.filter(product =>
