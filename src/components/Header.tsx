@@ -13,6 +13,8 @@ import {
 import { useCart } from "@/contexts/CartContext";
 import CartDrawer from "./CartDrawer";
 
+import { useAuth } from '@/contexts/AuthContext';
+import LogoutButton from './LogoutButton';
 interface HeaderProps {
   onSearch?: (term: string) => void;
 }
@@ -20,6 +22,7 @@ interface HeaderProps {
 const Header = ({ onSearch }: HeaderProps) => {
   const { cartCount } = useCart();
   const [searchTerm, setSearchTerm] = useState("");
+  const { isAuthenticated } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -66,12 +69,16 @@ const Header = ({ onSearch }: HeaderProps) => {
               </Button>
             </form>
             
-            {/* Designer Login */}
-            <Link to="/login">
-              <Button variant="ghost" size="icon">
-                <User className="h-5 w-5" />
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <LogoutButton />
+            ) : (
+              /* Designer Login */
+              <Link to="/login">
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+            )}
             
             {/* Cart */}
             <Sheet>

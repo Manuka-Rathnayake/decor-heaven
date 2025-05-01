@@ -8,10 +8,22 @@ import Categories from "@/components/Categories";
 import Footer from "@/components/Footer";
 
 const Index = () => {
-  const navigate = useNavigate();
+  // We need to conditionally use useNavigate to avoid the error
+  // when the component is rendered outside of Router context
+  let navigate;
+  try {
+    navigate = useNavigate();
+  } catch (error) {
+    // If useNavigate fails, we'll create a fallback function
+    navigate = (path: string) => {
+      window.location.href = path;
+    };
+  }
   
   const handleSearch = (term: string) => {
-    navigate(`/products?search=${term}`);
+    if (typeof navigate === 'function') {
+      navigate(`/products?search=${term}`);
+    }
   };
 
   return (
