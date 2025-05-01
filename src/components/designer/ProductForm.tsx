@@ -3,9 +3,9 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input, InputProps } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Check, ImagePlus, Plus } from "lucide-react";
+import { X, Check, ImagePlus, Plus, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -47,6 +47,8 @@ const ProductForm = ({
 }: ProductFormProps) => {  
   const { toast } = useToast();
   const [imagePreview, setImagePreview] = useState<string | null>(initialValues.image || null);
+  const [modelFileName, setModelFileName] = useState<string | null>(initialValues.modelFile || null);
+  const [isLoading, setIsLoading] = useState<boolean>(false); // Add isLoading state
   
   // States for color and material selection
   const [selectedColor, setSelectedColor] = useState<string>("");  
@@ -68,6 +70,7 @@ const ProductForm = ({
       image: initialValues.image || "",
       colors: initialValues.colors || [],
       materials: initialValues.materials || [],
+      modelFile: initialValues.modelFile || "",
       dimensions: {
         width: initialValues.dimensions?.width || 0,
         height: initialValues.dimensions?.height || 0,
@@ -117,30 +120,42 @@ const ProductForm = ({
   };
   
   const handleFormSubmit = async (values: ProductFormValues) => {
-    // Combine form values with any existing data from initialValues
-    const productData: Partial<Product> & { id?: string } = {
+    console.log("handleFormSubmit called");
+    setIsLoading(true); // Set isLoading to true at the start
+    
+    const file = form.getValues("modelFile")?.[0];
+    const productData: Partial<Product> & { id?: string } & { modelFile?: File[] }= {
       ...(initialValues || {}),
-      id: initialValues?.id,
-
+      id: initialValues?.id,      
       ...values,
       // Convert values to appropriate types and ensure dimensions has required properties
       price: Number(values.price),
       stock: Number(values.stock),
-      dimensions: {
+      dimensions: values.dimensions && {
         width: Number(values.dimensions.width),
         height: Number(values.dimensions.height),
         depth: Number(values.dimensions.depth)
       }
     };
+    
+    if (file) {      
+      productData.modelFile = [file];
+    } else {      
+      productData.modelFile = [];
+    }    
 
-    await onSave(productData);
+    try {
+      await onSave(productData);
+      toast({
+        title: isEditing ? "Product Updated" : "Product Added",
+        description: isEditing 
+          ? "Product details have been updated successfully." 
+          : "New product has been added successfully."
+      });
+    } finally {
+      setIsLoading(false); // Set isLoading back to false after submission (success or failure)
+    }
 
-    toast({
-      title: isEditing ? "Product Updated" : "Product Added",
-      description: isEditing 
-        ? "Product details have been updated successfully." 
-        : "New product has been added successfully."
-    });
   };
 
   return (
@@ -204,6 +219,36 @@ const ProductForm = ({
                     </p>
                   )}
                 </div>
+              </div>
+              {/* Model file */}
+              <div className="md:col-span-1 space-y-4">
+                <FormLabel>3D Model</FormLabel>
+
+                <FormField
+                control={form.control}
+                name="modelFile"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept=".glb, .gltf, .obj"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            field.onChange([file]);
+                            setModelFileName(file.name);
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                    {modelFileName ? (
+                      <p className="text-muted-foreground text-xs">{modelFileName}</p>
+                    ) : null}
+                  </FormItem>
+                )}
+                />
               </div>
               
               {/* Basic Details */}
@@ -496,12 +541,16 @@ const ProductForm = ({
             </div>
             
             <div className="flex justify-end gap-2 mt-6">
-              <Button type="button" variant="outline" onClick={onCancel}>
+              <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
                 <X className="mr-2 h-4 w-4" />
                 Cancel
               </Button>
-              <Button type="submit">
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
                 <Check className="mr-2 h-4 w-4" />
+                )}
                 {isEditing ? "Update Product" : "Save Product"}
               </Button>
             </div>
