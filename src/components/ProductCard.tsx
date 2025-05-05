@@ -31,13 +31,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
       <HoverCard openDelay={300} closeDelay={200}>
         <HoverCardTrigger asChild>
           <div className="aspect-square overflow-hidden cursor-pointer">
-            <Link to={`/product/${product.id}`}>
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-            </Link>
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
           </div>
         </HoverCardTrigger>
         <HoverCardContent className="w-80 p-0">
@@ -63,12 +61,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
       </HoverCard>
       
       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Link to={`/product/${product.id}`}>
-          <Button variant="secondary" size="icon">
-            <Eye className="h-4 w-4" />
-          </Button>
-        </Link>
-      </div>
+        <Button variant="secondary" size="icon">
+          <Eye className="h-4 w-4" />
+        </Button>
+      </div> 
       
       {product.featured && (
         <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-xs font-medium py-1 px-2 rounded">
@@ -84,9 +80,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
       <div className="p-4">
         <h3 className="font-medium text-sm sm:text-base truncate">
-          <Link to={`/product/${product.id}`}>{product.name}</Link>
-        </h3>
-        
+          {product.name}</h3>        
         <div className="flex items-center justify-between mt-2">
           <span className="font-semibold">{formatCurrency(product.price)}</span>
           
@@ -105,14 +99,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
             ))}
           </div>
         </div>
-        
-        <Button 
-          className="w-full mt-3"
-          onClick={() => addToCart(product)}
-        >
-          <ShoppingCart className="mr-2 h-4 w-4" />
-          Add to Cart
-        </Button>
       </div>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
@@ -170,19 +156,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 )}
               </div>
               
-              <div className="pt-4">
-                <Button 
-                  className="w-full"
-                  onClick={() => {
-                    addToCart(product);
-                    setShowDialog(false);
-                  }}
-                  disabled={product.stock <= 0}
-                >
-                  <ShoppingCart className="mr-2 h-4 w-4" />
-                  Add to Cart
-                </Button>
-              </div>
             </div>
           </div>
         </DialogContent>
