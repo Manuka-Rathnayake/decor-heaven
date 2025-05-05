@@ -14,6 +14,7 @@ import EditProduct from "./pages/designer/EditProduct";
 import { CartProvider } from "./contexts/CartContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import CreateDesigner from "./pages/designer/CreateDesigner";
 import DesignerDashboard from "./pages/designer/Dashboard";
 
 const queryClient = new QueryClient();
@@ -39,7 +40,14 @@ const App = () => (
                 <Route path="products" element={<DesignerProducts />} />
                 <Route path="add-product" element={<AddProduct />} />
                 <Route path="edit-product/:id" element={<EditProduct />} />
+                <Route path="create-designer" element={<CreateDesigner />} />
               </Route>
+              {/* <Route
+                path="/designer/create-designer"
+                element={
+                  <CreateDesigner />
+                }
+              /> */}
             </Routes>
             <Sonner />
           </BrowserRouter>
