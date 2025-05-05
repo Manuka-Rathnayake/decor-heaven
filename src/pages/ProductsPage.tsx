@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
@@ -26,35 +26,41 @@ const ProductsPage = () => {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
+  
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-
-
-  // Extract search parameters
-  const searchTerm = searchParams.get("search") || "";
-  const categoryParam = searchParams.get("category");
-
-  // Initial filters based on URL params
-  const initialFilters: FilterOptions = {
-    category: categoryParam,
+  const [filters, setFilters] = useState<FilterOptions>({
+    category: null,
     priceRange: [0, 2000],
     materials: [],
     colors: [],
-    inStock: true
-  };
+    inStock: true,
+  });
 
-  const [sortBy, setSortBy] = useState<string>("featured");
+    const [sortBy, setSortBy] = useState<string>("featured");
 
-  const handleSearch = (term: string) => {
-    searchParams.set("search", term);
-    setSearchParams(searchParams);
-  };
+  // Extract search parameters
+  const searchTerm = searchParams.get("search") || "";
 
-  const handleSortChange = (value: string) => {
-    setSortBy(value);
-  };
+  useEffect(() => {
+    console.log("search params changed");
+    const categoryParam = searchParams.get("category");
+    const priceRangeMin = searchParams.get("priceRangeMin") ? parseInt(searchParams.get("priceRangeMin")!) : 0;
+    const priceRangeMax = searchParams.get("priceRangeMax") ? parseInt(searchParams.get("priceRangeMax")!) : 2000;
+    const materialsParam = searchParams.getAll("materials");
+    const colorsParam = searchParams.getAll("colors");
+    const inStockParam = searchParams.get("inStock") === "true";
+
+    const newFilters: FilterOptions = {
+      category: categoryParam,
+      priceRange: [priceRangeMin, priceRangeMax],
+      materials: materialsParam,
+      colors: colorsParam,
+      inStock: inStockParam,
+    };
+    setFilters(newFilters);
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchAllProducts = async () => {
@@ -74,7 +80,22 @@ const ProductsPage = () => {
     fetchAllProducts();
   }, []);
 
+ 
+ 
+  const handleSearch = (term: string) => {
+    searchParams.set("search", term);
+    setSearchParams(searchParams);
+    console.log("Search params updated:", searchParams.toString());
+  };
+
+  const handleSortChange = (value: string) => {
+    setSortBy(value);
+  };
+  
+
   const handleFilterChange = async (filters: FilterOptions) => {
+    console.log("handleFilterChange called with filters:", filters);
+    console.log("filters:", filters);
     setLoading(true);
     setError(null);
     // Apply filters to products
@@ -103,19 +124,33 @@ const ProductsPage = () => {
 
     // Filter by materials
     if (filters.materials && filters.materials.length > 0) {
-      result = result.filter((product) =>
-        product.materials?.some((material) =>
+      console.log("filtering materials with: ",filters.materials)
+      result = result.filter((product) => {
+        console.log("product materials",product.materials)
+        const includeMaterial = product.materials?.some((material) =>
           filters.materials?.includes(material)
-        )
+        );
+        console.log(product.name,"includeMaterial",includeMaterial)
+        return includeMaterial
+      }
       );
     }
 
     // Filter by colors
     if (filters.colors && filters.colors.length > 0) {
-      result = result.filter((product) =>
-        product.colors?.some((color) => filters.colors?.includes(color))
+      console.log("filtering colors with: ",filters.colors)
+      result = result.filter((product) => {
+        console.log("product colors",product.colors)
+        const includeColor = product.colors?.some((color) => filters.colors?.includes(color))
+        console.log(product.name,"includeColor",includeColor)
+        return includeColor
+      }
       );
     }
+    
+
+    
+
     // Filter by stock
     if (filters.inStock) {
       result = result.filter(product => product.stock > 0);
@@ -152,25 +187,22 @@ const ProductsPage = () => {
     setFilteredProducts(result);
     }catch(err:any){
       setError(err.message || "An error occurred while fetching products.");
-    }finally{setLoading(false);}
+    }finally{
+        setLoading(false);
+    }
   };
 
-  useEffect(() => {
-    handleFilterChange(initialFilters);
-  }, [searchParams]);
-
-  // Apply sort when it changes
-  useEffect(() => {
-    handleFilterChange(initialFilters);
-  }, [sortBy]);
-  
-  // Clear search
   const clearSearch = () => {
     const newParams = new URLSearchParams(searchParams);
     newParams.delete("search");
     setSearchParams(newParams);
   };
 
+    // Update filters when search params change
+  useEffect(() => {
+    console.log("useEffect filters changed");
+    handleFilterChange(filters);
+  }, [filters,searchTerm, sortBy]);
   return (
     <div className="flex flex-col min-h-screen">
       <Header onSearch={handleSearch} />
@@ -192,7 +224,7 @@ const ProductsPage = () => {
                 <SheetContent side="left" className="w-[80%] sm:w-[350px]">
                   <ProductFilter 
                     onFilterChange={handleFilterChange} 
-                    initialFilters={initialFilters} 
+                    initialFilters={filters} 
                   />
                 </SheetContent>
               </Sheet>
@@ -230,7 +262,7 @@ const ProductsPage = () => {
                 <X className="h-4 w-4 mr-1" />
                 Clear
               </Button>
-            </div>
+            </div>          
           )}
           {error && <div className="text-red-500 mb-4">{error}</div>}
           {loading && (
@@ -245,7 +277,7 @@ const ProductsPage = () => {
               <div className="sticky top-20">
                 <ProductFilter
                   onFilterChange={handleFilterChange}
-                  initialFilters={initialFilters}
+                  initialFilters={filters}
                 />              
               </div>
             </div>
@@ -275,7 +307,9 @@ const ProductsPage = () => {
 
       <Footer />
     </div>
-  );
+  ); 
 };
+
+
 
 export default ProductsPage;

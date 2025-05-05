@@ -130,7 +130,7 @@ const ProductFilter = ({ onFilterChange, initialFilters }: ProductFilterProps) =
                     className="text-xs w-full justify-start"
                     onClick={() => handleCategoryChange(category.id)}
                   >
-                    {category.name} ({category.count})
+                    {category.name}
                   </Button>
                 </div>
               ))}
