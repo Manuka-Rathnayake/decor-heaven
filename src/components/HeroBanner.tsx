@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
@@ -12,7 +11,8 @@ const HeroBanner = () => {
             Transform Your Living Space
           </h1>
           <p className="text-lg md:text-xl mb-8 text-furniture-dark/80">
-            Discover our curated collection of elegant furniture pieces designed to bring comfort and style to your home.
+            Discover our curated collection of elegant furniture pieces designed
+            to bring comfort and style to your home.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Button size="lg" asChild>
@@ -21,16 +21,14 @@ const HeroBanner = () => {
               </Link>
             </Button>
             <Button variant="outline" size="lg" asChild>
-              <Link to="/about">
-                Our Story
-              </Link>
+              <Link to="/about">Our Journey</Link>
             </Button>
           </div>
         </div>
       </div>
-      
+
       <div className="absolute top-0 right-0 w-full h-full overflow-hidden flex justify-end items-center z-0 opacity-30 md:opacity-50">
-        <img 
+        <img
           src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
           alt="Living room with stylish furniture"
           className="h-full object-cover md:w-2/3"
