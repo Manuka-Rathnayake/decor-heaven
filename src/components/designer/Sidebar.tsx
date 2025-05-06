@@ -21,20 +21,28 @@ const Sidebar = ({ collapsed, toggleSidebar }: SidebarProps) => {
   //   { name: 'Create Designer', href: '/designer/create-designer', icon: LayoutDashboard }, // Always visible
   // ];
   const navigation = [
-    { name: 'Products', href: '/designer/products', icon: ShoppingBag },
-    { name: '3D Viewer', href: '/designer/viewer', icon: Boxes },
+    { name: "Products", href: "/designer/products", icon: ShoppingBag },
+    { name: "3D Viewer", href: "/designer/viewer", icon: Boxes },
     ...(designer?.role === "admin"
-      ? [{ name: 'Create Designer', href: '/designer/create-designer', icon: LayoutDashboard }]
+      ? [
+          {
+            name: "Add Designer",
+            href: "/designer/create-designer",
+            icon: LayoutDashboard,
+          },
+        ]
       : []),
   ];
-  
 
   return (
-    <div className={cn(
-      "h-screen bg-sidebar border-r flex flex-col",
-      collapsed ? "w-16" : "w-64",
-      "transition-all duration-300 ease-in-out"
-    )}>
+    <div
+      className={cn(
+        "fixed top-0 left-0 z-10",
+        "h-screen bg-sidebar border-r flex flex-col",
+        collapsed ? "w-16" : "w-64",
+        "transition-all duration-300 ease-in-out"
+      )}
+    >
       <div className="flex items-center justify-between h-16 px-4 border-b">
         {!collapsed ? (
           <Link to="/designer/products" className="font-bold text-xl">
@@ -60,18 +68,19 @@ const Sidebar = ({ collapsed, toggleSidebar }: SidebarProps) => {
                   : "text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
             >
-              <item.icon className={cn(
-                "flex-shrink-0 h-5 w-5",
-                pathname === item.href
-                  ? "text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground"
-              )} />
+              <item.icon
+                className={cn(
+                  "flex-shrink-0 h-5 w-5",
+                  pathname === item.href
+                    ? "text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground"
+                )}
+              />
               {!collapsed && <span className="ml-3">{item.name}</span>}
             </Link>
           ))}
         </nav>
       </div>
-
       <div className="p-4 border-t flex flex-col space-y-2">
         {!collapsed && (
           <div className="flex items-center mb-2">
@@ -80,7 +89,9 @@ const Sidebar = ({ collapsed, toggleSidebar }: SidebarProps) => {
             </div>
             <div className="ml-2">
               <p className="text-sm font-medium">{designer?.name}</p>
-              <p className="text-xs text-sidebar-foreground/70">{designer?.role}</p>
+              <p className="text-xs text-sidebar-foreground/70">
+                {designer?.role}
+              </p>
             </div>
           </div>
         )}
@@ -152,9 +163,6 @@ const Sidebar = ({ collapsed, toggleSidebar }: SidebarProps) => {
 
 export default Sidebar;
 
-
-
-
 // import { LogOut, ShoppingBag, Boxes } from "lucide-react";
 // import { Link, useLocation, useNavigate} from "react-router-dom";
 // import { cn } from "@/lib/utils";
@@ -175,13 +183,13 @@ export default Sidebar;
 //             Decor Haven
 //           </Link>
 //       </div>
-      
+
 //      <ul>
 //           <li>
 //             <Link to="/designer/create-designer">Create Designer</Link>
 //           </li>
 //         </ul>
-        
+
 //         <Button
 //           variant="outline"
 //           size="sm"
@@ -212,4 +220,3 @@ export default Sidebar;
 // };
 
 // export default Sidebar;
-

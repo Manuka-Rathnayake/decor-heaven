@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -19,9 +18,9 @@ const Index = () => {
       window.location.href = path;
     };
   }
-  
+
   const handleSearch = (term: string) => {
-    if (typeof navigate === 'function') {
+    if (typeof navigate === "function") {
       navigate(`/products?search=${term}`);
     }
   };
@@ -33,18 +32,11 @@ const Index = () => {
         <HeroBanner />
         <Categories />
         <FeaturedProducts />
-        
+
         <section className="py-12 bg-primary/5">
-          <div className="container mx-auto px-4 text-center max-w-4xl">
-            <h2 className="text-2xl font-bold mb-4">Curated Designs for Every Space</h2>
-            <p className="text-muted-foreground mb-6">
-              We believe that well-designed furniture has the power to transform spaces and enhance your daily living experience. 
-              Our collection is carefully curated to bring you pieces that combine style, comfort, and quality craftsmanship.
-            </p>
-          </div>
+          <div className="container mx-auto px-4 text-center max-w-4xl"></div>
         </section>
       </main>
-      <Footer />
     </div>
   );
 };
