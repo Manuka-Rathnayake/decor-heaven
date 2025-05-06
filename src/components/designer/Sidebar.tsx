@@ -26,7 +26,7 @@ const Sidebar = ({ collapsed, toggleSidebar }: SidebarProps) => {
     ...(designer?.role === "admin"
       ? [
           {
-            name: "Create Designer",
+            name: "Add Designer",
             href: "/designer/create-designer",
             icon: LayoutDashboard,
           },
@@ -83,19 +83,17 @@ const Sidebar = ({ collapsed, toggleSidebar }: SidebarProps) => {
       </div>
       <div className="p-4 border-t flex flex-col space-y-2">
         {!collapsed && (
-          <button>
-            <div className="flex items-center mb-2">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
-                {designer?.name?.charAt(0)}
-              </div>
-              <div className="ml-2">
-                <p className="text-sm font-medium">{designer?.name}</p>
-                <p className="text-xs text-sidebar-foreground/70">
-                  {designer?.role}
-                </p>
-              </div>
+          <div className="flex items-center mb-2">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+              {designer?.name?.charAt(0)}
             </div>
-          </button>
+            <div className="ml-2">
+              <p className="text-sm font-medium">{designer?.name}</p>
+              <p className="text-xs text-sidebar-foreground/70">
+                {designer?.role}
+              </p>
+            </div>
+          </div>
         )}
 
         <Button

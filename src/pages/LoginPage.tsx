@@ -53,7 +53,9 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (!isOnline) {
-      setNetworkError("You are currently offline. Please check your internet connection.");
+      setNetworkError(
+        "You are currently offline. Please check your internet connection."
+      );
     } else {
       setNetworkError(null);
     }
@@ -69,7 +71,9 @@ const LoginPage = () => {
 
   const onLoginSubmit = async (values: LoginFormValues) => {
     if (!isOnline) {
-      setNetworkError("You are currently offline. Please check your internet connection.");
+      setNetworkError(
+        "You are currently offline. Please check your internet connection."
+      );
       return;
     }
 
@@ -105,7 +109,9 @@ const LoginPage = () => {
       <Header />
       <main className="flex-1 py-16">
         <div className="container mx-auto px-4 max-w-md">
-          <h1 className="text-2xl font-bold text-center mb-8">Designer Portal</h1>
+          <h1 className="text-2xl font-bold text-center mb-8">
+            Designer Portal
+          </h1>
 
           {networkError && (
             <Alert variant="destructive" className="mb-6">
@@ -124,7 +130,10 @@ const LoginPage = () => {
             </div>
 
             <Form {...loginForm}>
-              <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+              <form
+                onSubmit={loginForm.handleSubmit(onLoginSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={loginForm.control}
                   name="email"
@@ -132,7 +141,10 @@ const LoginPage = () => {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="your.email@example.com" {...field} />
+                        <Input
+                          placeholder="your.email@example.com"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -146,7 +158,11 @@ const LoginPage = () => {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} />
+                        <Input
+                          type="password"
+                          placeholder="••••••••"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -168,21 +184,13 @@ const LoginPage = () => {
           </div>
         </div>
       </main>
-      <Footer />
+
       <Toaster />
     </div>
   );
 };
 
 export default LoginPage;
-
-
-
-
-
-
-
-
 
 // import { useState, useEffect } from "react";
 // import { useNavigate } from "react-router-dom";
@@ -240,10 +248,10 @@ export default LoginPage;
 //   useEffect(() => {
 //     const handleOnline = () => setIsOnline(true);
 //     const handleOffline = () => setIsOnline(false);
-    
+
 //     window.addEventListener('online', handleOnline);
 //     window.addEventListener('offline', handleOffline);
-    
+
 //     return () => {
 //       window.removeEventListener('online', handleOnline);
 //       window.removeEventListener('offline', handleOffline);
@@ -257,7 +265,7 @@ export default LoginPage;
 //       setNetworkError(null);
 //     }
 //   }, [isOnline]);
-  
+
 //   // Login form
 //   const loginForm = useForm<LoginFormValues>({
 //     resolver: zodResolver(loginSchema),
@@ -286,29 +294,29 @@ export default LoginPage;
 
 //     setLoading(true);
 //     setNetworkError(null);
-    
+
 //     try {
 //       await login(values.email, values.password);
 //       toast({
 //         title: "Success",
 //         description: "You have been logged in",
 //       });
-//     } catch (error: any) {      
+//     } catch (error: any) {
 //       console.error("Login error:", error);
 //       toast({
 //         title: "Error",
 //         description: error.message,
 //         variant: "destructive",
-//       });      
+//       });
 //     }
 //   }
-  
+
 //   useEffect(() => {
 //     if (isAuthenticated) {
 //       navigate("/designer");
 //       toast({
-//         title: "Success",        
-//       })      
+//         title: "Success",
+//       })
 //     } else {
 //       setLoading(false);
 //     }
@@ -319,10 +327,10 @@ export default LoginPage;
 //       setNetworkError("You are currently offline. Please check your internet connection.");
 //       return;
 //     }
-    
+
 //     setLoading(true);
 //     setNetworkError(null);
-    
+
 //     try{
 //       await register(values.name, values.email, values.password);
 //       toast({
@@ -332,10 +340,10 @@ export default LoginPage;
 //       setActiveTab("login");
 //       loginForm.setValue("email", values.email);
 //       loginForm.setValue("password", values.password);
-      
+
 //     } catch (error) {
 //       console.error('Registration error:', error);
-      
+
 //       // Check if it's a network error
 //       toast({
 //         title: "Error",
@@ -353,7 +361,7 @@ export default LoginPage;
 //       <main className="flex-1 py-16">
 //         <div className="container mx-auto px-4 max-w-md">
 //           <h1 className="text-2xl font-bold text-center mb-8">Designer Portal</h1>
-          
+
 //           {networkError && (
 //             <Alert variant="destructive" className="mb-6">
 //               <AlertTriangle className="h-4 w-4" />
@@ -361,13 +369,13 @@ export default LoginPage;
 //               <AlertDescription>{networkError}</AlertDescription>
 //             </Alert>
 //           )}
-          
+
 //           <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
 //             <TabsList className="grid w-full grid-cols-2 mb-8">
 //               <TabsTrigger value="login">Login</TabsTrigger>
 //               <TabsTrigger value="register">Register</TabsTrigger>
 //             </TabsList>
-            
+
 //             <TabsContent value="login">
 //               <div className="space-y-6">
 //                 <div className="text-center">
@@ -376,7 +384,7 @@ export default LoginPage;
 //                     Sign in to access your designer dashboard
 //                   </p>
 //                 </div>
-                
+
 //                 <Form {...loginForm}>
 //                   <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
 //                     <FormField
@@ -392,7 +400,7 @@ export default LoginPage;
 //                         </FormItem>
 //                       )}
 //                     />
-                    
+
 //                     <FormField
 //                       control={loginForm.control}
 //                       name="password"
@@ -406,7 +414,7 @@ export default LoginPage;
 //                         </FormItem>
 //                       )}
 //                     />
-                    
+
 //                     <Button type="submit" className="w-full" disabled={loading}>
 //                       {loading ? (
 //                         <>
@@ -421,7 +429,7 @@ export default LoginPage;
 //                 </Form>
 //               </div>
 //             </TabsContent>
-            
+
 //             <TabsContent value="register">
 //               <div className="space-y-6">
 //                 <div className="text-center">
@@ -430,7 +438,7 @@ export default LoginPage;
 //                     Register to join as a designer
 //                   </p>
 //                 </div>
-                
+
 //                 <Form {...registerForm}>
 //                   <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
 //                     <FormField
@@ -446,7 +454,7 @@ export default LoginPage;
 //                         </FormItem>
 //                       )}
 //                     />
-                    
+
 //                     <FormField
 //                       control={registerForm.control}
 //                       name="email"
@@ -460,7 +468,7 @@ export default LoginPage;
 //                         </FormItem>
 //                       )}
 //                     />
-                    
+
 //                     <FormField
 //                       control={registerForm.control}
 //                       name="password"
@@ -474,7 +482,7 @@ export default LoginPage;
 //                         </FormItem>
 //                       )}
 //                     />
-                    
+
 //                     <FormField
 //                       control={registerForm.control}
 //                       name="confirmPassword"
@@ -488,7 +496,7 @@ export default LoginPage;
 //                         </FormItem>
 //                       )}
 //                     />
-                    
+
 //                     <Button type="submit" className="w-full" disabled={loading}>
 //                       {loading ? (
 //                         <>
