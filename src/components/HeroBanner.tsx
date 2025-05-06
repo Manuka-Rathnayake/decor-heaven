@@ -8,7 +8,7 @@ const HeroBanner = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-2xl">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-furniture-dark">
-            Transform Your Living Space
+            Welcome to Decor Haven
           </h1>
           <p className="text-lg md:text-xl mb-8 text-furniture-dark/80">
             Discover our curated collection of elegant furniture pieces designed
@@ -19,9 +19,6 @@ const HeroBanner = () => {
               <Link to="/products">
                 Shop Collection <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
-            </Button>
-            <Button variant="outline" size="lg" asChild>
-              <Link to="/about">Our Journey</Link>
             </Button>
           </div>
         </div>
