@@ -44,17 +44,29 @@ export function useFurnitureModels() {
       try {
         setLoading(true);
         
-        // Reference to the products collection in Firestore
+        // FIXED: Correct path to the products collection
+        // Based on your screenshot, it should be just 'products', not 'products/models'
         const productsRef = collection(db, 'products');
+        
+        // Add some debugging to see if we're connecting properly
+        console.log('Attempting to fetch from Firestore...');
+        
         const querySnapshot = await getDocs(productsRef);
+        
+        console.log('Query snapshot size:', querySnapshot.size);
         
         const loadedModels: FurnitureModel[] = [];
         
         querySnapshot.forEach((doc) => {
           const data = doc.data();
+          console.log('Document ID:', doc.id);
+          console.log('Fetched data:', data);
           
           // Only add products that have model URLs
-          if (!data.modelUrl) return;
+          if (!data.modelUrl) {
+            console.log('Skipping document - no modelUrl:', doc.id);
+            return;
+          }
           
           // Get furniture type from category or default to 'furniture'
           const type = data.category?.toLowerCase() || 'furniture';
@@ -63,7 +75,7 @@ export function useFurnitureModels() {
           const furnitureModel: FurnitureModel = {
             id: doc.id,
             name: data.name || 'Unnamed Furniture',
-            type: data.category,
+            type: data.category || type,
             thumbnail: data.image || `/furniture/thumbnails/${type}.png`,
             model: data.modelUrl,
             defaultColor: data.colors?.[0] || getDefaultColor(type),
@@ -87,7 +99,7 @@ export function useFurnitureModels() {
           console.warn('No furniture models found in Firestore');
         }
       } catch (err) {
-        console.error('Error loading models from Firestore:', err);
+        console.error('Error loading models from Firestore:', err, (err as Error).stack);
         setError('Failed to load furniture models');
       } finally {
         setLoading(false);

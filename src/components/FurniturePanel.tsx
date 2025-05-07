@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useRoomStore } from "@/store/roomStore";
-import { furnitureModels } from "@/models/furniture";
+import { furnitureModels, useFurnitureModels } from "@/models/furniture";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { FileDown, Download } from "lucide-react";
 
 // Static definition of local models instead of API call
@@ -24,12 +23,24 @@ const FurniturePanel = () => {
   const importLocalModels = useRoomStore((state) => state.importLocalModels);
   const { toast } = useToast();
   const [uploadedModels, setUploadedModels] = useState([]);
+  
+  // Use the hook to fetch furniture from Firestore
+  const { furnitureModels: firestoreModels, loading, error } = useFurnitureModels();
+  
+  // Debug logs
+  console.log('Firestore models loading status:', loading);
+  console.log('Firestore models error:', error);
+  console.log('Firestore models count:', firestoreModels.length);
 
   useEffect(() => {
     // Use the static models array directly
     setUploadedModels(LOCAL_MODELS);
     importLocalModels(LOCAL_MODELS);
   }, [importLocalModels]);
+
+  // Combine both static and Firestore models
+  const allFurnitureModels = [...firestoreModels, ...furnitureModels];
+  console.log('Total furniture models available:', allFurnitureModels.length);
 
   const handleAddFurniture = (itemId) => {
     if (!activeDesign) {
@@ -41,7 +52,7 @@ const FurniturePanel = () => {
       return;
     }
 
-    const modelData = furnitureModels.find((model) => model.id === itemId);
+    const modelData = allFurnitureModels.find((model) => model.id === itemId);
     if (!modelData) return;
 
     addFurniture({
@@ -84,15 +95,20 @@ const FurniturePanel = () => {
     });
   };
 
+  // Get unique furniture types from all models
   const furnitureTypes = Array.from(
-    new Set(furnitureModels.map((model) => model.type))
+    new Set(allFurnitureModels.map((model) => model.type))
   );
 
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-[#FEF7CD]/50 to-white overflow-hidden">
       <div className="p-4 border-b border-[#FEF7CD]/70">
         <h3 className="text-lg font-semibold mb-2 text-neutral-800">Furniture Library</h3>
-        <p className="text-sm text-neutral-600">Select and place furniture in your room design</p>
+        <p className="text-sm text-neutral-600">
+          {loading ? 'Loading furniture...' : 
+           error ? `Error loading furniture: ${error}` : 
+           `Select and place furniture in your room design (${allFurnitureModels.length} items)`}
+        </p>
       </div>
 
       <Tabs defaultValue="all" className="flex-1 flex flex-col overflow-hidden">
@@ -119,29 +135,43 @@ const FurniturePanel = () => {
 
         <ScrollArea className="flex-1 overflow-y-auto">
           <TabsContent value="all" className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 m-0">
-            {furnitureModels.map((model) => (
-              <Card key={model.id} className="overflow-hidden border-[#FEF7CD]/70 hover:shadow-md transition-shadow">
-                <div
-                  className="w-full h-24 bg-gradient-to-br from-[#FEF7CD]/30 to-white flex items-center justify-center"
-                  style={{ backgroundImage: `url(${model.thumbnail})`, backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}
-                >
-                  {/* Fallback if no image */}
-                  {!model.thumbnail && (
-                    <div className="w-16 h-16 bg-[#FEF7CD]/50 rounded-md"></div>
-                  )}
-                </div>
-                <CardContent className="p-3">
-                  <p className="text-sm font-medium mb-2 text-neutral-800">{model.name}</p>
-                  <Button
-                    onClick={() => handleAddFurniture(model.id)}
-                    size="sm"
-                    className="w-full bg-[#FEF7CD] hover:bg-[#FEF0A0] text-neutral-900"
+            {loading ? (
+              <div className="col-span-2 flex justify-center py-10">
+                <p>Loading furniture models...</p>
+              </div>
+            ) : error ? (
+              <div className="col-span-2 flex justify-center py-10">
+                <p className="text-red-500">Error: {error}</p>
+              </div>
+            ) : allFurnitureModels.length > 0 ? (
+              allFurnitureModels.map((model) => (
+                <Card key={model.id} className="overflow-hidden border-[#FEF7CD]/70 hover:shadow-md transition-shadow">
+                  <div
+                    className="w-full h-24 bg-gradient-to-br from-[#FEF7CD]/30 to-white flex items-center justify-center"
+                    style={{ backgroundImage: `url(${model.thumbnail})`, backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}
                   >
-                    Add
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                    {/* Fallback if no image */}
+                    {!model.thumbnail && (
+                      <div className="w-16 h-16 bg-[#FEF7CD]/50 rounded-md"></div>
+                    )}
+                  </div>
+                  <CardContent className="p-3">
+                    <p className="text-sm font-medium mb-2 text-neutral-800">{model.name}</p>
+                    <Button
+                      onClick={() => handleAddFurniture(model.id)}
+                      size="sm"
+                      className="w-full bg-[#FEF7CD] hover:bg-[#FEF0A0] text-neutral-900"
+                    >
+                      Add
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="col-span-2 flex justify-center py-10">
+                <p>No furniture models available</p>
+              </div>
+            )}
           </TabsContent>
 
           {furnitureTypes.map((type) => (
@@ -150,7 +180,7 @@ const FurniturePanel = () => {
               value={type}
               className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 m-0"
             >
-              {furnitureModels
+              {allFurnitureModels
                 .filter((model) => model.type === type)
                 .map((model) => (
                   <Card key={model.id} className="overflow-hidden border-[#FEF7CD]/70 hover:shadow-md transition-shadow">
