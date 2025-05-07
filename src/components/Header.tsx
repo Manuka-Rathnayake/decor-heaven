@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ShoppingCart, Search, Menu, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,9 +21,11 @@ interface HeaderProps {
 const Header = ({ onSearch }: HeaderProps) => {
   const { cartCount } = useCart();
   const [searchTerm, setSearchTerm] = useState("");
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, designer } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+  
+  const location = useLocation();
+  
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (onSearch) {
@@ -36,7 +38,7 @@ const Header = ({ onSearch }: HeaderProps) => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center">
+          <Link to="/" className="flex items-center" >
             <span className="text-xl font-bold text-furniture-dark">
               Decor Haven
             </span>
@@ -45,9 +47,13 @@ const Header = ({ onSearch }: HeaderProps) => {
           {/* Search Form - Desktop */}
           <div className="hidden md:flex items-center">
             {isAuthenticated ? (
-              <LogoutButton />
+              <>
+                {designer && (
+                  <Link to="/designer/products"><Button >Go to Dashboard</Button></Link>
+                )}
+                <LogoutButton className="ml-4" />
+              </>
             ) : (
-              /* Designer Login */
               <Link to="/login">
                 <Button variant="ghost" size="icon">
                   <User className="h-5 w-5" />

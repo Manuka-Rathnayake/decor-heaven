@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import HeroBanner from "@/components/HeroBanner";
 import FeaturedProducts from "@/components/FeaturedProducts";
 import Categories from "@/components/Categories";
+
 import Footer from "@/components/Footer";
 
 const Index = () => {
@@ -19,16 +21,22 @@ const Index = () => {
     };
   }
 
+  const { designer } = useAuth();
+
   const handleSearch = (term: string) => {
     if (typeof navigate === "function") {
       navigate(`/products?search=${term}`);
     }
   };
 
+  const goToDashboard = () => {
+    navigate("/designer/products");
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header onSearch={handleSearch} />
-      <main className="flex-1">
+      <main className="flex-1">     
         <HeroBanner />
         <Categories />
         <FeaturedProducts />

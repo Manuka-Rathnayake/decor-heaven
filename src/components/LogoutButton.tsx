@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
 
-const LogoutButton = () => {
+interface LogoutButtonProps {className?:string}
+
+const LogoutButton = (props: LogoutButtonProps) => {
   const { logout, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -25,7 +27,7 @@ const LogoutButton = () => {
   };
 
   return (
-    <Button variant="outline" onClick={handleLogout} disabled={loading}>
+    <Button {...props} variant="outline" onClick={handleLogout} disabled={loading}>
       Logout
     </Button>
   );
