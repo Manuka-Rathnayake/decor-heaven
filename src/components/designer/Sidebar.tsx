@@ -1,5 +1,5 @@
 import { ShoppingBag, LogOut, LayoutDashboard, Boxes } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,13 +45,13 @@ const Sidebar = ({ collapsed, toggleSidebar }: SidebarProps) => {
     >
       <div className="flex items-center justify-between h-16 px-4 border-b">
         {!collapsed ? (
-          <Link to="/designer/products" className="font-bold text-xl">
+          <Link to="/" className="text-xl font-bold">
             Decor Haven
           </Link>
         ) : (
-          <Link to="/designer/products" className="mx-auto font-bold text-xl">
+          <Link to="/" className="mx-auto font-bold text-xl">
             DH
-          </Link>
+          </Link>        
         )}
       </div>
 
