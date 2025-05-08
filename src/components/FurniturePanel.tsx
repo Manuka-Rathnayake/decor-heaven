@@ -45,19 +45,22 @@ const FurniturePanel = () => {
       });
       return;
     }
-
+  
     const model = combinedFurnitureModels.find((m) => m.id === itemId);
     if (!model) return;
-
+  
+    // Store more complete model information
     addFurniture({
       type: model.id,
       position: model.defaultPosition || [0, 0, 0],
       rotation: model.defaultRotation || [0, 0, 0],
       scale: model.defaultScale || [1, 1, 1],
       color: model.defaultColor || "#FFFFFF",
-      model: model.model,
+      model: model.model, // Store the actual model URL
+      name: model.name, // Store name for reference
+      thumbnail: model.thumbnail // Store thumbnail for reference
     });
-
+  
     toast({
       title: "Item added",
       description: `${model.name} added to your design`,
