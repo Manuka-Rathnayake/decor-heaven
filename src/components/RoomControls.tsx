@@ -13,7 +13,6 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
-// Remove GLTF exporter as we're using dynamic import for OBJ exporter
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 
@@ -62,7 +61,6 @@ const RoomControls = () => {
   const handleScaleChange = (axis: 'x' | 'y' | 'z', value: number) => {
     if (!selectedItem) return;
     
-    // Ensure value is positive and reasonable
     const safeValue = Math.max(0.1, Math.min(10, value));
     
     const newScale = [...selectedItem.scale] as [number, number, number];
@@ -71,10 +69,8 @@ const RoomControls = () => {
     
     console.log(`Scaling ${furnitureModelData?.name || "item"}, ${axis} axis to ${safeValue}`);
     
-    // Update the store with the new scale
     updateFurniture(selectedItem.id, { 
       scale: newScale,
-      // Add a timestamp to ensure the component re-renders
       _lastUpdated: Date.now() 
     });
   };
@@ -125,13 +121,10 @@ const RoomControls = () => {
   const handleExport3DModel = () => {
     if (!activeDesign) return;
     
-    // Use dynamic import for OBJExporter
     import('three/examples/jsm/exporters/OBJExporter.js').then((module) => {
       const OBJExporter = module.OBJExporter;
       
       try {
-        // Define a window global function to access the scene from Room3D component
-        // This avoids TypeScript issues with accessing custom properties on DOM elements
         const scene = (window as any).__ROOM3D_SCENE__;
         
         if (!scene) {
@@ -143,11 +136,9 @@ const RoomControls = () => {
           return;
         }
         
-        // Export the scene
         const exporter = new OBJExporter();
         const result = exporter.parse(scene);
         
-        // Create blob and download
         const blob = new Blob([result], { type: 'text/plain' });
         const link = document.createElement('a');
         link.style.display = 'none';

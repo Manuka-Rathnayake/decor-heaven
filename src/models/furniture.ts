@@ -14,10 +14,8 @@ export interface FurnitureModel {
   defaultScale: [number, number, number];
 }
 
-// Default array to store furniture models for static imports
 export const furnitureModels: FurnitureModel[] = [];
 
-// Default colors for different furniture types
 const getDefaultColor = (type: string): string => {
   const typeColors: Record<string, string> = {
     'table': '#A67C52',
@@ -25,14 +23,12 @@ const getDefaultColor = (type: string): string => {
     'shelf': '#A67C52',
     'storage': '#A67C52',
     'wooden': '#A67C52',
-    // Default color for other types
     'default': '#8E9196'
   };
   
   return typeColors[type] || typeColors.default;
 };
 
-// Hook to fetch furniture models from Firestore
 export function useFurnitureModels() {
   const [models, setModels] = useState<FurnitureModel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,12 +39,9 @@ export function useFurnitureModels() {
     const fetchModels = async () => {
       try {
         setLoading(true);
-        
-        // FIXED: Correct path to the products collection
-        // Based on your screenshot, it should be just 'products', not 'products/models'
+
         const productsRef = collection(db, 'products');
-        
-        // Add some debugging to see if we're connecting properly
+
         console.log('Attempting to fetch from Firestore...');
         
         const querySnapshot = await getDocs(productsRef);
@@ -62,16 +55,13 @@ export function useFurnitureModels() {
           console.log('Document ID:', doc.id);
           console.log('Fetched data:', data);
           
-          // Only add products that have model URLs
           if (!data.modelUrl) {
             console.log('Skipping document - no modelUrl:', doc.id);
             return;
           }
-          
-          // Get furniture type from category or default to 'furniture'
+
           const type = data.category?.toLowerCase() || 'furniture';
           
-          // Create furniture model object
           const furnitureModel: FurnitureModel = {
             id: doc.id,
             name: data.name || 'Unnamed Furniture',
@@ -90,7 +80,6 @@ export function useFurnitureModels() {
         if (loadedModels.length > 0) {
           setModels(loadedModels);
           
-          // Update the exported array for static imports
           furnitureModels.length = 0;
           furnitureModels.push(...loadedModels);
           
@@ -112,7 +101,6 @@ export function useFurnitureModels() {
   return { furnitureModels: models, loading, error };
 }
 
-// Function to get a specific furniture model by ID
 export const getFurnitureById = (id: string): FurnitureModel | undefined => {
   return furnitureModels.find(item => item.id === id);
 };

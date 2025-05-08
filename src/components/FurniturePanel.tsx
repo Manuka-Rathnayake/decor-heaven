@@ -16,17 +16,14 @@ const FurniturePanel = () => {
   const { toast } = useToast();
   const [uploadedModels, setUploadedModels] = useState([]);
 
-  // Firestore hook
   const { furnitureModels: firestoreModels, loading, error } = useFurnitureModels();
 
-  // Deduplicate Firestore + defaultModels by 'id'
   const combinedFurnitureModels = Array.from(
     new Map(
       [...defaultModels, ...firestoreModels].map((model) => [model.id, model])
     ).values()
   );
 
-  // Unique furniture types
   const furnitureTypes = Array.from(
     new Set(combinedFurnitureModels.map((model) => model.type || "misc"))
   );
@@ -49,16 +46,15 @@ const FurniturePanel = () => {
     const model = combinedFurnitureModels.find((m) => m.id === itemId);
     if (!model) return;
   
-    // Store more complete model information
     addFurniture({
       type: model.id,
       position: model.defaultPosition || [0, 0, 0],
       rotation: model.defaultRotation || [0, 0, 0],
       scale: model.defaultScale || [1, 1, 1],
       color: model.defaultColor || "#FFFFFF",
-      model: model.model, // Store the actual model URL
-      name: model.name, // Store name for reference
-      thumbnail: model.thumbnail // Store thumbnail for reference
+      model: model.model, 
+      name: model.name, 
+      thumbnail: model.thumbnail 
     });
   
     toast({
@@ -148,7 +144,6 @@ const FurniturePanel = () => {
             )}
           </TabsContent>
 
-          {/* Tabs by type */}
           {furnitureTypes.map((type) => (
             <TabsContent key={type} value={type} className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
               {combinedFurnitureModels
