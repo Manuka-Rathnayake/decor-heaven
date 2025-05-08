@@ -8,9 +8,9 @@ export interface FurnitureItem {
   rotation: [number, number, number];
   scale: [number, number, number];
   color: string;
-  model: string; // URL to the model
-  name?: string; // Store the name for reference
-  thumbnail?: string; // Store thumbnail for reference
+  model: string; 
+  name?: string; 
+  thumbnail?: string; 
 }
 
 export interface Point2D {
@@ -48,7 +48,7 @@ interface RoomState {
   updateFurniture: (id: string, updates: Partial<FurnitureItem>) => void;
   removeFurniture: (id: string) => void;
   setSelectedFurniture: (id: string | null) => void;
-  exportDesignAsOBJ: () => string; // Function for OBJ export
+  exportDesignAsOBJ: () => string; 
   importLocalModels: (models: {id: string, name: string, path: string}[]) => void;
   localModels: {id: string, name: string, path: string}[];
 }
@@ -64,50 +64,46 @@ export const useRoomStore = create<RoomState>()(
 
       importLocalModels: (models) => set({ localModels: models }),
       
-      // New function to export the design as OBJ format
       exportDesignAsOBJ: () => {
         const { activeDesign } = get();
         if (!activeDesign) return '';
         
-        // This is a simplified representation - in a real app you'd use a proper OBJ exporter
         const { length, width, height, wallColor, floorColor } = activeDesign;
         
-        // Generate a basic OBJ string (this is a simplified example)
         let objContent = `# Room Design OBJ Export\n`;
         objContent += `# Name: ${activeDesign.name}\n`;
         objContent += `# Dimensions: ${length} x ${width} x ${height}\n\n`;
         
-        // Add room vertices
+  
         objContent += `# Room Vertices\n`;
-        objContent += `v ${-length/2} 0 ${-width/2}\n`; // Bottom left
-        objContent += `v ${length/2} 0 ${-width/2}\n`;  // Bottom right
-        objContent += `v ${length/2} 0 ${width/2}\n`;   // Top right
-        objContent += `v ${-length/2} 0 ${width/2}\n`;  // Top left
-        objContent += `v ${-length/2} ${height} ${-width/2}\n`; // Top bottom left
-        objContent += `v ${length/2} ${height} ${-width/2}\n`;  // Top bottom right
-        objContent += `v ${length/2} ${height} ${width/2}\n`;   // Top top right
-        objContent += `v ${-length/2} ${height} ${width/2}\n`;  // Top top left
+        objContent += `v ${-length/2} 0 ${-width/2}\n`; 
+        objContent += `v ${length/2} 0 ${-width/2}\n`;  
+        objContent += `v ${length/2} 0 ${width/2}\n`;   
+        objContent += `v ${-length/2} 0 ${width/2}\n`;  
+        objContent += `v ${-length/2} ${height} ${-width/2}\n`; 
+        objContent += `v ${length/2} ${height} ${-width/2}\n`;  
+        objContent += `v ${length/2} ${height} ${width/2}\n`;   
+        objContent += `v ${-length/2} ${height} ${width/2}\n`;  
         
-        // Add faces for the room
+     
         objContent += `\n# Room Faces\n`;
         objContent += `g Floor\n`;
         objContent += `usemtl ${floorColor.replace('#', 'color_')}\n`;
-        objContent += `f 1 2 3 4\n`; // Floor
+        objContent += `f 1 2 3 4\n`; 
         
         objContent += `\ng Walls\n`;
         objContent += `usemtl ${wallColor.replace('#', 'color_')}\n`;
-        objContent += `f 1 2 6 5\n`; // Wall 1
-        objContent += `f 2 3 7 6\n`; // Wall 2
-        objContent += `f 3 4 8 7\n`; // Wall 3
-        objContent += `f 4 1 5 8\n`; // Wall 4
+        objContent += `f 1 2 6 5\n`; 
+        objContent += `f 2 3 7 6\n`; 
+        objContent += `f 3 4 8 7\n`; 
+        objContent += `f 4 1 5 8\n`; 
         
         objContent += `\ng Ceiling\n`;
-        objContent += `f 5 6 7 8\n`; // Ceiling
-        
-        // Add furniture items
+        objContent += `f 5 6 7 8\n`; 
+
         objContent += `\n# Furniture Items\n`;
         activeDesign.furniture.forEach((item, index) => {
-          const baseIndex = 8 + index * 8; // Each item adds 8 vertices
+          const baseIndex = 8 + index * 8; 
           const [px, py, pz] = item.position;
           const [rx, ry, rz] = item.rotation;
           const [sx, sy, sz] = item.scale;
@@ -118,8 +114,6 @@ export const useRoomStore = create<RoomState>()(
           objContent += `# Scale: ${sx} ${sy} ${sz}\n`;
           objContent += `# Model: ${item.model}\n`;
           
-          // Add basic cube vertices for the furniture item
-          // In a real exporter, you'd reference the actual model
           objContent += `v ${px-sx/2} ${py-sy/2} ${pz-sz/2}\n`;
           objContent += `v ${px+sx/2} ${py-sy/2} ${pz-sz/2}\n`;
           objContent += `v ${px+sx/2} ${py-sy/2} ${pz+sz/2}\n`;
@@ -129,7 +123,6 @@ export const useRoomStore = create<RoomState>()(
           objContent += `v ${px+sx/2} ${py+sy/2} ${pz+sz/2}\n`;
           objContent += `v ${px-sx/2} ${py+sy/2} ${pz+sz/2}\n`;
           
-          // Add faces for the furniture item
           objContent += `\ng Furniture_${index}\n`;
           objContent += `usemtl ${item.color.replace('#', 'color_')}\n`;
           objContent += `f ${baseIndex+1} ${baseIndex+2} ${baseIndex+3} ${baseIndex+4}\n`; // Bottom

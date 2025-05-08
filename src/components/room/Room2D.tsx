@@ -41,10 +41,8 @@ const Room2D = () => {
     
     const { length, width, shape, wallColor, floorColor } = activeDesign;
     
-    // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Calculate room dimensions in pixels
     const roomWidthPx = width * scale;
     const roomLengthPx = length * scale;
     
@@ -53,7 +51,7 @@ const Room2D = () => {
     const offsetY = (canvas.height - roomWidthPx) / 2;
     
     if (mode === 'draw' && drawPoints.length > 0) {
-      // Draw custom shape based on user's drawing
+      
       ctx.fillStyle = floorColor;
       ctx.strokeStyle = wallColor;
       ctx.lineWidth = 4;
@@ -74,7 +72,7 @@ const Room2D = () => {
       ctx.fill();
       ctx.stroke();
       
-      // Draw points for editing
+      
       drawPoints.forEach(point => {
         ctx.fillStyle = '#9b87f5';
         ctx.beginPath();
@@ -82,17 +80,16 @@ const Room2D = () => {
         ctx.fill();
       });
     } else {
-      // Draw room shape
+
       ctx.fillStyle = floorColor;
       ctx.strokeStyle = wallColor;
       ctx.lineWidth = 4;
       
       if (shape === 'rectangular') {
-        // Draw rectangular room
         ctx.fillRect(offsetX, offsetY, roomLengthPx, roomWidthPx);
         ctx.strokeRect(offsetX, offsetY, roomLengthPx, roomWidthPx);
       } else {
-        // Draw L-shaped room
+
         const mainLength = length * 0.7 * scale;
         const mainWidth = width * scale;
         const extensionLength = length * scale;
@@ -111,7 +108,7 @@ const Room2D = () => {
       }
     }
     
-    // Draw furniture
+  
     if (activeDesign.furniture && activeDesign.furniture.length > 0) {
       activeDesign.furniture.forEach(item => {
         drawFurnitureItem(ctx, item, offsetX, offsetY);
@@ -124,24 +121,20 @@ const Room2D = () => {
     const [scaleX, scaleY, scaleZ] = item.scale;
     const [rotX, rotY, rotZ] = item.rotation;
     
-    // Convert 3D position to 2D canvas position
     const posX = offsetX + (x + activeDesign.length / 2) * scale;
     const posY = offsetY + (z + activeDesign.width / 2) * scale;
     
-    // Base size of furniture item in pixels
     const sizeX = 0.8 * scale * scaleX;
-    const sizeY = 0.8 * scale * scaleZ; // z-scale for top-down view
+    const sizeY = 0.8 * scale * scaleZ;
     
-    // Save current drawing state
+
     ctx.save();
     
-    // Move to position and apply rotation
     ctx.translate(posX, posY);
-    ctx.rotate(rotY); // Only use Y rotation for top-down view
+    ctx.rotate(rotY); 
     
-    // Draw the furniture item
+
     if (item.id === selectedFurniture) {
-      // Highlight selected furniture with a glow effect
       ctx.shadowColor = '#9b87f5';
       ctx.shadowBlur = 10;
     }
@@ -149,12 +142,10 @@ const Room2D = () => {
     ctx.fillStyle = item.color;
     ctx.fillRect(-sizeX/2, -sizeY/2, sizeX, sizeY);
     
-    // Add outline
     ctx.strokeStyle = item.id === selectedFurniture ? '#7E69AB' : '#000000';
     ctx.lineWidth = item.id === selectedFurniture ? 2 : 1;
     ctx.strokeRect(-sizeX/2, -sizeY/2, sizeX, sizeY);
     
-    // Restore drawing state
     ctx.restore();
   }
   
@@ -168,35 +159,27 @@ const Room2D = () => {
     
     if (mode === 'draw') {
       setIsDrawing(true);
-      // Start drawing or add point to existing drawing
       setDrawPoints([...drawPoints, { x: mouseX, y: mouseY }]);
       return;
     }
     
-    // Move mode - for furniture manipulation
-    // Calculate room offset for coordinate conversion
     const roomWidthPx = activeDesign.width * scale;
     const roomLengthPx = activeDesign.length * scale;
     const offsetX = (canvas.width - roomLengthPx) / 2;
     const offsetY = (canvas.height - roomWidthPx) / 2;
     
-    // Check if clicked on furniture
     for (let i = activeDesign.furniture.length - 1; i >= 0; i--) {
       const item = activeDesign.furniture[i];
       const [x, y, z] = item.position;
       
-      // Convert 3D position to 2D canvas position
       const posX = offsetX + (x + activeDesign.length / 2) * scale;
       const posY = offsetY + (z + activeDesign.width / 2) * scale;
-      
-      // Check if mouse is inside furniture item
+
       const sizeX = 0.8 * scale * item.scale[0];
       const sizeY = 0.8 * scale * item.scale[2];
       
-      // Account for rotation
       const rotY = item.rotation[1];
       
-      // Calculate bounding box (simplified - not perfect for rotated items)
       const distance = Math.sqrt(
         Math.pow((mouseX - posX) * Math.cos(rotY) + (mouseY - posY) * Math.sin(rotY), 2) +
         Math.pow(-(mouseX - posX) * Math.sin(rotY) + (mouseY - posY) * Math.cos(rotY), 2)
@@ -210,7 +193,6 @@ const Room2D = () => {
       }
     }
     
-    // If no furniture was clicked, deselect
     if (mode === 'move') {
       setSelectedFurniture(null);
     }
@@ -225,7 +207,7 @@ const Room2D = () => {
     const mouseY = e.clientY - rect.top;
     
     if (mode === 'draw' && isDrawing) {
-      // Update the last point for real-time drawing feedback
+   
       const updatedPoints = [...drawPoints];
       updatedPoints[updatedPoints.length - 1] = { x: mouseX, y: mouseY };
       setDrawPoints(updatedPoints);
@@ -234,17 +216,17 @@ const Room2D = () => {
     
     if (!dragging || mode !== 'move') return;
     
-    // Calculate room offset for coordinate conversion
+    
     const roomWidthPx = activeDesign.width * scale;
     const roomLengthPx = activeDesign.length * scale;
     const offsetX = (canvas.width - roomLengthPx) / 2;
     const offsetY = (canvas.height - roomWidthPx) / 2;
     
-    // Calculate new position in room coordinates
+   
     const newX = ((mouseX - dragOffset.x) - offsetX) / scale - activeDesign.length / 2;
     const newZ = ((mouseY - dragOffset.y) - offsetY) / scale - activeDesign.width / 2;
     
-    // Update furniture position
+   
     const item = activeDesign.furniture.find(item => item.id === dragging);
     if (item) {
       updateFurniture(item.id, {
@@ -259,9 +241,9 @@ const Room2D = () => {
   };
   
   const saveCustomShape = () => {
-    if (drawPoints.length < 3) return; // Need at least 3 points for a shape
+    if (drawPoints.length < 3) return; 
     
-    // Calculate approximate dimensions from the drawn shape
+   
     let minX = Infinity, maxX = -Infinity;
     let minY = Infinity, maxY = -Infinity;
     
@@ -275,14 +257,14 @@ const Room2D = () => {
     const estimatedLength = (maxX - minX) / scale;
     const estimatedWidth = (maxY - minY) / scale;
     
-    // Update the active design with custom shape
+   
     if (activeDesign) {
       updateDesign({
         ...activeDesign,
-        shape: 'custom' as any, // We'll need to update the type definition later
+        shape: 'custom' as any, 
         length: estimatedLength,
         width: estimatedWidth,
-        // Save the normalized points for later rendering
+        
         customPoints: drawPoints.map(point => ({
           x: (point.x - minX) / (maxX - minX),
           y: (point.y - minY) / (maxY - minY)

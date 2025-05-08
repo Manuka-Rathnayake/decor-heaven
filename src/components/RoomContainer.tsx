@@ -11,7 +11,7 @@ const RoomContainer = () => {
     return (
       <div className="w-full h-full flex items-center justify-center bg-neutral-light p-6">
         <div className="text-center max-w-md">
-          <h2 className="text-2xl font-bold mb-2 text-purple">Welcome to FurnishIt 3D</h2>
+          <h2 className="text-2xl font-bold mb-2 text-purple">Welcome to Decor - Haven</h2>
           <p className="text-neutral-dark mb-4">
             Create a new room design or select an existing one to start configuring your perfect space.
           </p>
