@@ -8,7 +8,9 @@ export interface FurnitureItem {
   rotation: [number, number, number];
   scale: [number, number, number];
   color: string;
-  model: string;
+  model: string; // URL to the model
+  name?: string; // Store the name for reference
+  thumbnail?: string; // Store thumbnail for reference
 }
 
 export interface Point2D {
@@ -46,8 +48,8 @@ interface RoomState {
   updateFurniture: (id: string, updates: Partial<FurnitureItem>) => void;
   removeFurniture: (id: string) => void;
   setSelectedFurniture: (id: string | null) => void;
+  exportDesignAsOBJ: () => string; // Function for OBJ export
   importLocalModels: (models: {id: string, name: string, path: string}[]) => void;
-  exportDesignAsOBJ: () => string; // New function for OBJ export
   localModels: {id: string, name: string, path: string}[];
 }
 
@@ -114,6 +116,7 @@ export const useRoomStore = create<RoomState>()(
           objContent += `# Position: ${px} ${py} ${pz}\n`;
           objContent += `# Rotation: ${rx} ${ry} ${rz}\n`;
           objContent += `# Scale: ${sx} ${sy} ${sz}\n`;
+          objContent += `# Model: ${item.model}\n`;
           
           // Add basic cube vertices for the furniture item
           // In a real exporter, you'd reference the actual model

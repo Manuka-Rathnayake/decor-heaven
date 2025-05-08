@@ -20,6 +20,8 @@ const FurnitureModel = ({ item, isSelected, onClick, roomDimensions = [10, 10] }
   const [loadError, setLoadError] = useState<string | null>(null);
   const [autoScaleFactor, setAutoScaleFactor] = useState<number>(1);
   const modelRef = useRef<Group>(null);
+  
+  // Get furniture data from type ID, but prioritize the direct model URL from the item if available
   const furnitureData = getFurnitureById(item.type);
   
   // Helper function to calculate automatic scale for models
@@ -34,7 +36,8 @@ const FurnitureModel = ({ item, isSelected, onClick, roomDimensions = [10, 10] }
     
     // If the model is too large (> 2 meters in any dimension), scale it down
     // For OBJ models specifically, scale down more aggressively
-    const fileExtension = furnitureData?.model?.split('.').pop()?.toLowerCase();
+    const modelUrl = item.model || furnitureData?.model || "";
+    const fileExtension = getFileExtension(modelUrl);
     
     if (fileExtension === 'obj') {
       // Many OBJ models are too large, scale them down to a reasonable size
@@ -51,24 +54,71 @@ const FurnitureModel = ({ item, isSelected, onClick, roomDimensions = [10, 10] }
     return 1; // No auto-scaling needed
   };
   
+  // Helper function to extract file extension properly, ignoring query parameters
+  const getFileExtension = (url: string): string => {
+    // Check if URL exists
+    if (!url) return '';
+    
+    // Remove query parameters after the URL
+    const urlWithoutParams = url.split('?')[0];
+    // Get the file extension
+    const extension = urlWithoutParams.split('.').pop()?.toLowerCase() || '';
+    return extension;
+  };
+  
+  // Create a proxy URL to handle CORS if needed
+  const createProxyUrl = (url: string): string => {
+    // Check if we're in development and need a CORS proxy
+    if (process.env.NODE_ENV === 'development') {
+      // You might need to set up a proxy in your development server
+      // This is just an example, adjust according to your setup
+      return url; // For now, return the original URL
+    }
+    return url;
+  };
+  
   // Load the appropriate model based on file extension
   useEffect(() => {
-    if (!furnitureData?.model) return;
+    // First check if the item itself has the model URL, then fall back to furnitureData
+    const modelUrl = item.model || furnitureData?.model;
+    
+    if (!modelUrl) {
+      console.warn("No model URL available for this furniture", item);
+      setLoadError("Missing model URL");
+      setIsLoading(false);
+      return;
+    }
     
     setIsLoading(true);
     setLoadError(null);
     
-    const modelPath = furnitureData.model;
-    const fileExtension = modelPath.split('.').pop()?.toLowerCase();
+    const fileExtension = getFileExtension(modelUrl);
+    
+    console.log(`Loading model: ${modelUrl}`);
+    console.log(`Detected file extension: ${fileExtension}`);
     
     try {
       // Different loaders based on file extension
       if (fileExtension === 'obj') {
         // For OBJ models
         const objLoader = new OBJLoader();
+        
+        // Add a progress handler to monitor loading
+        const onProgress = (event: ProgressEvent) => {
+          if (event.lengthComputable) {
+            const percentComplete = Math.round((event.loaded / event.total) * 100);
+            console.log(`Loading progress: ${percentComplete}%`);
+          }
+        };
+        
+        const proxiedUrl = createProxyUrl(modelUrl);
+        console.log(`Attempting to load OBJ from: ${proxiedUrl}`);
+        
         objLoader.load(
-          modelPath,
+          proxiedUrl,
           (loadedModel) => {
+            console.log("OBJ model loaded successfully:", loadedModel);
+            
             // Calculate appropriate auto-scale for this model
             const scaleFactor = calculateAutoScale(loadedModel);
             setAutoScaleFactor(scaleFactor);
@@ -103,17 +153,44 @@ const FurnitureModel = ({ item, isSelected, onClick, roomDimensions = [10, 10] }
             setModel(loadedModel);
             setIsLoading(false);
           },
-          undefined,
+          onProgress,
           (error) => {
             console.error('Error loading OBJ model:', error);
-            setLoadError('Failed to load OBJ model');
-            setIsLoading(false);
+            // Try to get more detailed error information
+            let errorMessage = 'Failed to load OBJ model';
+            if (error.message) {
+              errorMessage += `: ${error.message}`;
+            } else if (typeof error === 'string') {
+              errorMessage += `: ${error}`;
+            }
+            
+            // Check if this might be a CORS issue
+            if (error.message && error.message.includes('Cross-Origin')) {
+              errorMessage += ' (Possible CORS issue)';
+            }
+            
+            // Test if the URL is accessible with a fetch
+            fetch(proxiedUrl, { method: 'HEAD' })
+              .then(response => {
+                if (!response.ok) {
+                  console.error(`URL returned ${response.status}: ${response.statusText}`);
+                  errorMessage += ` (HTTP ${response.status})`;
+                }
+                setLoadError(errorMessage);
+                setIsLoading(false);
+              })
+              .catch(fetchErr => {
+                console.error('Fetch test failed:', fetchErr);
+                errorMessage += ' (URL not accessible)';
+                setLoadError(errorMessage);
+                setIsLoading(false);
+              });
           }
         );
       } else if (fileExtension === 'glb' || fileExtension === 'gltf') {
         // For GLTF/GLB models
         try {
-          const { scene } = useGLTF(modelPath);
+          const { scene } = useGLTF(modelUrl);
           const clonedModel = scene.clone();
           
           // Calculate appropriate auto-scale for this model
@@ -153,7 +230,7 @@ const FurnitureModel = ({ item, isSelected, onClick, roomDimensions = [10, 10] }
           setIsLoading(false);
         } catch (error) {
           console.error('Error loading GLTF/GLB model:', error);
-          setLoadError('Failed to load GLTF/GLB model');
+          setLoadError(`Failed to load GLTF/GLB model: ${error instanceof Error ? error.message : 'Unknown error'}`);
           setIsLoading(false);
         }
       } else {
@@ -162,10 +239,10 @@ const FurnitureModel = ({ item, isSelected, onClick, roomDimensions = [10, 10] }
       }
     } catch (error) {
       console.error('Error in model loading:', error);
-      setLoadError('Failed to load model');
+      setLoadError(`Failed to load model: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setIsLoading(false);
     }
-  }, [furnitureData?.model]);
+  }, [item.model, furnitureData?.model]);
 
   // Update model when selected state changes
   useEffect(() => {
@@ -259,6 +336,13 @@ const FurnitureModel = ({ item, isSelected, onClick, roomDimensions = [10, 10] }
           <Html center>
             <div className="bg-red-100 text-red-700 px-2 py-1 text-xs rounded-md whitespace-nowrap">
               {loadError}
+            </div>
+          </Html>
+        )}
+        {isLoading && (
+          <Html center>
+            <div className="bg-blue-100 text-blue-700 px-2 py-1 text-xs rounded-md whitespace-nowrap">
+              Loading model...
             </div>
           </Html>
         )}

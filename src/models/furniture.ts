@@ -1,75 +1,118 @@
+import { useEffect, useState } from 'react';
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import { app } from '@/config/firebase';
 
 export interface FurnitureModel {
-    id: string;
-    name: string;
-    type: string;
-    thumbnail: string;
-    model: string;
-    defaultColor: string;
-    defaultPosition: [number, number, number];
-    defaultRotation: [number, number, number];
-    defaultScale: [number, number, number];
-  }
-  
-  export const furnitureModels: FurnitureModel[] = [
-    {
-      id: 'sofa-1',
-      name: 'Modern Sofa',
-      type: 'sofa',
-      thumbnail: '/furniture/thumbnails/sofa-1.png',
-      model: '/furniture/models/modern chair 11 obj.obj',
-      defaultColor: '#8E9196',
-      defaultPosition: [0, 0, 0],
-      defaultRotation: [0, 0, 0],
-      defaultScale: [1, 1, 1],
-    },
-    {
-      id: 'chair-1',
-      name: 'Lounge Chair',
-      type: 'chair',
-      thumbnail: '/furniture/thumbnails/chair-1.png',
-      model: '/furniture/models/the chair modeling.obj',
-      defaultColor: '#8E9196',
-      defaultPosition: [0, 0, 0],
-      defaultRotation: [0, 0, 0],
-      defaultScale: [1, 1, 1],
-    },
-    {
-      id: 'table-1',
-      name: 'Coffee Table',
-      type: 'table',
-      thumbnail: '/furniture/thumbnails/table-1.png',
-      model: '/furniture/models/table-1.glb',
-      defaultColor: '#A67C52',
-      defaultPosition: [0, 0, 0],
-      defaultRotation: [0, 0, 0],
-      defaultScale: [1, 1, 1],
-    },
-    {
-      id: 'bed-1',
-      name: 'Queen Bed',
-      type: 'bed',
-      thumbnail: '/furniture/thumbnails/bed-1.png',
-      model: '/furniture/models/modern chair 11 obj.obj',
-      defaultColor: '#8E9196',
-      defaultPosition: [0, 0, 0],
-      defaultRotation: [0, 0, 0],
-      defaultScale: [1, 1, 1],
-    },
-    {
-      id: 'shelf-1',
-      name: 'Bookshelf',
-      type: 'shelf',
-      thumbnail: '/furniture/thumbnails/shelf-1.png',
-      model: '/furniture/models/shelf-1.glb',
-      defaultColor: '#A67C52',
-      defaultPosition: [0, 0, 0],
-      defaultRotation: [0, 0, 0],
-      defaultScale: [1, 1, 1],
-    }
-  ];
-  
-  export const getFurnitureById = (id: string): FurnitureModel | undefined => {
-    return furnitureModels.find(item => item.id === id);
+  id: string;
+  name: string;
+  type: string;
+  thumbnail: string;
+  model: string;
+  defaultColor: string;
+  defaultPosition: [number, number, number];
+  defaultRotation: [number, number, number];
+  defaultScale: [number, number, number];
+}
+
+// Default array to store furniture models for static imports
+export const furnitureModels: FurnitureModel[] = [];
+
+// Default colors for different furniture types
+const getDefaultColor = (type: string): string => {
+  const typeColors: Record<string, string> = {
+    'table': '#A67C52',
+    'desk': '#A67C52',
+    'shelf': '#A67C52',
+    'storage': '#A67C52',
+    'wooden': '#A67C52',
+    // Default color for other types
+    'default': '#8E9196'
   };
   
+  return typeColors[type] || typeColors.default;
+};
+
+// Hook to fetch furniture models from Firestore
+export function useFurnitureModels() {
+  const [models, setModels] = useState<FurnitureModel[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const db = getFirestore(app);
+
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        setLoading(true);
+        
+        // FIXED: Correct path to the products collection
+        // Based on your screenshot, it should be just 'products', not 'products/models'
+        const productsRef = collection(db, 'products');
+        
+        // Add some debugging to see if we're connecting properly
+        console.log('Attempting to fetch from Firestore...');
+        
+        const querySnapshot = await getDocs(productsRef);
+        
+        console.log('Query snapshot size:', querySnapshot.size);
+        
+        const loadedModels: FurnitureModel[] = [];
+        
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          console.log('Document ID:', doc.id);
+          console.log('Fetched data:', data);
+          
+          // Only add products that have model URLs
+          if (!data.modelUrl) {
+            console.log('Skipping document - no modelUrl:', doc.id);
+            return;
+          }
+          
+          // Get furniture type from category or default to 'furniture'
+          const type = data.category?.toLowerCase() || 'furniture';
+          
+          // Create furniture model object
+          const furnitureModel: FurnitureModel = {
+            id: doc.id,
+            name: data.name || 'Unnamed Furniture',
+            type: data.category || type,
+            thumbnail: data.image || `/furniture/thumbnails/${type}.png`,
+            model: data.modelUrl,
+            defaultColor: data.colors?.[0] || getDefaultColor(type),
+            defaultPosition: [0, 0, 0],
+            defaultRotation: [0, 0, 0],
+            defaultScale: [1, 1, 1],
+          };
+          
+          loadedModels.push(furnitureModel);
+        });
+        
+        if (loadedModels.length > 0) {
+          setModels(loadedModels);
+          
+          // Update the exported array for static imports
+          furnitureModels.length = 0;
+          furnitureModels.push(...loadedModels);
+          
+          console.log('Loaded furniture models:', loadedModels);
+        } else {
+          console.warn('No furniture models found in Firestore');
+        }
+      } catch (err) {
+        console.error('Error loading models from Firestore:', err, (err as Error).stack);
+        setError('Failed to load furniture models');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchModels();
+  }, [db]);
+  
+  return { furnitureModels: models, loading, error };
+}
+
+// Function to get a specific furniture model by ID
+export const getFurnitureById = (id: string): FurnitureModel | undefined => {
+  return furnitureModels.find(item => item.id === id);
+};
