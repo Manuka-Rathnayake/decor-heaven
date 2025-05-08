@@ -50,7 +50,7 @@ const ProductForm = ({
   const [modelFileName, setModelFileName] = useState<string | null>(initialValues.modelFile || null);
   const [isLoading, setIsLoading] = useState<boolean>(false); // Add isLoading state
   
-  // States for color and material selection
+
   const [selectedColor, setSelectedColor] = useState<string>("");  
   const [selectedMaterial, setSelectedMaterial] = useState<string>("");  
 
@@ -121,14 +121,14 @@ const ProductForm = ({
   
   const handleFormSubmit = async (values: ProductFormValues) => {
     console.log("handleFormSubmit called");
-    setIsLoading(true); // Set isLoading to true at the start
+    setIsLoading(true); 
     
     const file = form.getValues("modelFile")?.[0];
     const productData: Partial<Product> & { id?: string } & { modelFile?: File[] }= {
       ...(initialValues || {}),
       id: initialValues?.id,      
       ...values,
-      // Convert values to appropriate types and ensure dimensions has required properties
+     
       price: Number(values.price),
       stock: Number(values.stock),
       dimensions: values.dimensions && {
@@ -153,7 +153,7 @@ const ProductForm = ({
           : "New product has been added successfully."
       });
     } finally {
-      setIsLoading(false); // Set isLoading back to false after submission (success or failure)
+      setIsLoading(false); 
     }
 
   };
